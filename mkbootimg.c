@@ -55,30 +55,47 @@ oops:
     return 0;
 }
 
-static void *mtk_load_file(const char *fn)  // MTK512字节数据创建函数
+static void *mtk_load_file(const char *fn, unsigned sz)  // MTK512字节数据创建函数
+// return pack('a4 L a32 a472', "\x88\x16\x88\x58", $length, $header_type, "\xFF"x472);
 {
 	char *data;
+	char data_hex[8];
+	char size_hex[4];
 	// 创建 KERNEL, ROOTFS, RECOVERY 标识符
-	char mtk_kernel[14] = {0x88, 0x16, 0x88, 0x58, 0xde, 0xaf, 0x65, 0x00, 0x4b, 0x45, 0x52, 0x4e, 0x45, 0x4c};
-	char mtk_boot[14] = {0x88, 0x16, 0x88, 0x58, 0x84, 0x0a, 0x0f, 0x00, 0x52, 0x4f, 0x4f, 0x54, 0x46, 0x53};
-	char mtk_recovery[16] = {0x88, 0x16, 0x88, 0x58, 0xf9, 0xed, 0x53, 0x00, 0x52, 0x45, 0x43, 0x4f, 0x56, 0x45, 0x52, 0x59};
+	char mtk_kernel[6] = {0x4b, 0x45, 0x52, 0x4e, 0x45, 0x4c};
+	char mtk_rootfs[6] = {0x52, 0x4f, 0x4f, 0x54, 0x46, 0x53};
+	char mtk_recovery[8] = {0x52, 0x45, 0x43, 0x4f, 0x56, 0x45, 0x52, 0x59};
 	int i;
 
 	data = (char*) malloc(512); // 分配内存给data
 	if(data == 0) goto oops;
 
+	// Mtk magic 0x88 0x16 0x88 0x58
+	data[0] = 0x88;
+	data[1] = 0x16;
+	data[2] = 0x88;
+	data[3] = 0x58;
+
+	sprintf(data_hex, "%08x", sz);		// 将数据大小输出成十六进制样式并赋值数组
+	sscanf(data_hex, "%x", size_hex);	// 将字符串转换成十六进制并赋值数组
+
+	// 数据大小赋值给data
+	for(i=4 ; i < 8 ; i++)
+		data[i] = size_hex[i-4];
+
+
 	// 根据传递进来的参数创建标识符
 	if(!strcmp(fn,"kernel"))
-		for(i = 0; i < 14; i++)
-			data[i] = mtk_kernel[i];
+		for(i = 8; i < 14 ; i++)
+			data[i] = mtk_kernel[i-8];
 
-	if(!strcmp(fn,"boot"))
-		for(i = 0; i < 14 ; i++)
-			data[i] = mtk_boot[i];
+	if(!strcmp(fn,"rootfs"))
+		for(i = 8; i < 14 ; i++)
+			data[i] = mtk_rootfs[i-8];
 
 	if(!strcmp(fn,"recovery"))
-		for(i = 0; i < 16 ; i++)
-			data[i] = mtk_recovery[i];
+		for(i = 8; i < 16 ; i++)
+			data[i] = mtk_recovery[i-8];
 
 	// 标识符剩余部分填充为0x00
 	for(; i < 40; i++) data[i] = 0x00;
@@ -299,12 +316,12 @@ int main(int argc, char **argv)
     }
 
 	if(!strcmp(ramdisk_type,"recovery") || !strcmp(ramdisk_type,"boot")) {
+		mtk_kernel_data   = mtk_load_file("kernel",hdr.kernel_size);	// kernel头部分数据创建
+		mtk_boot_data     = mtk_load_file("rootfs",hdr.ramdisk_size);	// rootfs头部分数据创建
+		mtk_recovery_data = mtk_load_file("recovery",hdr.ramdisk_size);	// recovery头部分数据创建
+
 		hdr.kernel_size  += 512;	// kernel增加512字节 (MTK头部分大小)
 		hdr.ramdisk_size += 512;	// ramdisk增加512字节 (MTK头部分大小)
-
-		mtk_kernel_data   = mtk_load_file("kernel");	// kernel头部分数据创建
-		mtk_boot_data     = mtk_load_file("boot");		// rootfs头部分数据创建
-		mtk_recovery_data = mtk_load_file("recovery");	// recovery头部分数据创建
 
 		if(mtk_kernel_data == 0 || mtk_boot_data == 0 || mtk_recovery_data == 0 ) { // 创建失败则退出
 			fprintf(stderr,"error: can't init mtk boot.img data\n");
@@ -342,7 +359,7 @@ int main(int argc, char **argv)
 	if(!strcmp(ramdisk_type,"recovery") || !strcmp(ramdisk_type,"boot")) {//
 		hdr.kernel_size  -= 512; // kernel还原回正常写入数据大小
 		hdr.ramdisk_size -= 512; // ramdisk还原回正常写入数据大小
-
+		
 		if(write(fd, mtk_kernel_data, 512) != 512) goto fail; // 将MTK标识数据写入kernel头部分
 	}
 
