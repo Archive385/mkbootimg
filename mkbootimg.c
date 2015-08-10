@@ -167,7 +167,7 @@ int main(int argc, char **argv)
     char *dt_fn = 0;
     void *dt_data = 0;
 	// MTK变量定义开始
-	char *ramdisk_type = "unknow";
+	char *ramdisk_type = "unknown";
 	void *mtk_kernel_data = 0;
 	void *mtk_boot_data = 0;
 	void *mtk_recovery_data = 0;
