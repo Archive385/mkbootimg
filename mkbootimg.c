@@ -167,7 +167,7 @@ int main(int argc, char **argv)
     char *dt_fn = 0;
     void *dt_data = 0;
 	// MTK变量定义开始
-	char *ramdisk_type = 0;
+	char *ramdisk_type = "unknow";
 	void *mtk_kernel_data = 0;
 	void *mtk_boot_data = 0;
 	void *mtk_recovery_data = 0;
@@ -299,7 +299,7 @@ int main(int argc, char **argv)
         }
     }
 
-    if(second_fn) {
+	if(second_fn) {
         second_data = load_file(second_fn, &hdr.second_size);
         if(second_data == 0) {
             fprintf(stderr,"error: could not load secondstage '%s'\n", second_fn);
