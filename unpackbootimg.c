@@ -110,7 +110,7 @@ int main(int argc, char** argv)
     if (pagesize == 0) {
         pagesize = header.page_size;
     }
-    mkdir(directory);
+    mkdir(directory, 0755);
     //printf("cmdline...\n");
     sprintf(tmp, "%s/%s", directory, basename(filename));
     strcat(tmp, "-cmdline");
