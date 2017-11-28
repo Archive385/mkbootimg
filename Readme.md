@@ -3,4 +3,4 @@
 `make`
 
 ### Android build
-`make CC=~/android-toolchain/bin/arm-linux-androideabi-gcc`
+`make CROSS_COMPILE=~/android-toolchain/bin/arm-linux-androideabi- LDFLAGS=-fPIE CFLAGS=-pie`
