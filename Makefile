@@ -20,16 +20,16 @@ unpackbootimg_src_obj := $(unpackbootimg_src_files:.c=.o)
 all: mkbootimg mkbootfs unpackbootimg
 
 %.o: %.c
-	$(CROSS_COMPILE)$(CC) $(LDFLAGS) -I. -c $<
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) -I. -c $<
 
 mkbootimg: $(mkbootimg_src_obj)
-	$(CROSS_COMPILE)$(CC) $(CFLAGS) $^ -o $@
+	$(CROSS_COMPILE)$(CC) $(LDFLAGS) $^ -o $@
 
 unpackbootimg: $(unpackbootimg_src_obj)
-	$(CROSS_COMPILE)$(CC) $(CFLAGS) $^ -o $@
+	$(CROSS_COMPILE)$(CC) $(LDFLAGS) $^ -o $@
 
 mkbootfs: $(mkbootfs_src_obj)
-	$(CROSS_COMPILE)$(CC) $(CFLAGS) $^ -o $@
+	$(CROSS_COMPILE)$(CC) $(LDFLAGS) $^ -o $@
 
 .PHONY: clean
 clean:
