@@ -1,3 +1,8 @@
+CC = gcc
+FLAGS  = -fPIE
+CFLAGS = -pie
+
+
 mkbootimg_src_files := \
 	mkbootimg.c        \
 	sha.c
@@ -18,16 +23,16 @@ unpackbootimg_src_obj := $(unpackbootimg_src_files:.c=.o)
 all: mkbootimg mkbootfs unpackbootimg
 
 %.o: %.c
-	gcc -I. -c $<
+	$(CC) $(FLAGS) -I. -c $<
 
 mkbootimg: $(mkbootimg_src_obj)
-	gcc $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@
 
 unpackbootimg: $(unpackbootimg_src_obj)
-	gcc $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@
 
 mkbootfs: $(mkbootfs_src_obj)
-	gcc $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@
 
 .PHONY: clean
 clean:
